@@ -1,0 +1,89 @@
+<html>
+
+<head>
+    <title>grapecity_spreadJS_demo</title>
+    <script src="jquery_3.1.1.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="gc.spread.sheets.excel2013white.14.2.2.css" type="text/css">
+    <script src="gc.spread.sheets.all.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.excelio.14.2.2.min.js" type="text/javascript"></script>
+    <script src="https://cdn.grapecity.com.cn/spreadjs/scripts/FileSaver.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.resources.zh.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.print.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.pdf.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.charts.14.2.2.min.js" type="text/javascript"></script>
+    <script src="v14.js" type="text/javascript"></script>
+    <style type="text/css">
+        p{
+            color: #336699;
+            text-align: center;
+        }
+        
+        #ss{
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>自定义单元格-空格显示"-"</p>
+    <div id="ss"></div>
+    <script type="text/javascript">
+        // Title:空值显示为-
+        // Description：自定义单元格_空值显示为-
+        // Tag:自定义单元格,空值显示为-
+        
+        var spreadNS = GC.Spread.Sheets;
+        window.onload = function() {
+            var spread = new GC.Spread.Sheets.Workbook(document.getElementById("ss"));
+            initSpread(spread);
+        };
+        
+        /*
+        		这里声明了一个新的单元格类型
+        	*/
+        function ShowValueCellType() {}
+            /*
+        		新类型继承了SpreadJS原生的Text类型
+        	*/
+        ShowValueCellType.prototype = new spreadNS.CellTypes.Text();
+        /*
+        		重写Text的paint方法
+        	*/
+        ShowValueCellType.prototype.paint = function(ctx, value, x, y, w, h, style, options) {
+            //这里可以加入自己的业务逻辑，判断当内容属于不可见时，替换为*** 或其它字符
+            if (value === null || value === undefined) {
+                value = "-";
+            }
+            spreadNS.CellTypes.Base.prototype.paint.apply(this, [ctx, value, x, y, w, h, style, options]);
+        };
+        
+        function initSpread(spread) {
+            var sheet = spread.getSheet(0);
+            sheet.suspendPaint();
+        
+            sheet.setRowCount(8);
+            sheet.setColumnCount(10);
+        
+            sheet.setValue(0, 0, "值1", GC.Spread.Sheets.SheetArea.colHeader);
+            sheet.setValue(0, 1, "值2", GC.Spread.Sheets.SheetArea.colHeader);
+            sheet.setValue(0, 2, "值1+值2", GC.Spread.Sheets.SheetArea.colHeader);
+        
+            for (var i = 0; i < sheet.getRowCount() - 1; i++) {
+                sheet.setValue(i, 0, i);
+                sheet.setValue(i, 1, sheet.getRowCount() - i);
+                var j = i + 1;
+                sheet.setFormula(i, 2, "=A" + j + "+B" + j);
+                sheet.setValue(i, 2, i + 1);
+            }
+            // 这是给整个表单设置单元格类型，实际上可以通过 sheet.setCellType更为灵活地设置到对应单元格上
+            sheet.getRange(0, 0, sheet.getRowCount(), sheet.getColumnCount()).cellType(new ShowValueCellType());
+            sheet.setFormula(7, 2, "=A8+B8");
+        
+            sheet.resumePaint();
+        
+        };
+    </script>
+</body>
+
+</html>
